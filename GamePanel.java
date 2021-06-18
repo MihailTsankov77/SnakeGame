@@ -1,12 +1,12 @@
 package GameOfSnake;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -18,9 +18,9 @@ public class GamePanel extends JPanel implements ActionListener{
 	
 	static final int CELL_SIZE = 50;
 	static final int CELLS = (SCREEN_WIDTH/CELL_SIZE)*(SCREEN_HEIGHT/CELL_SIZE);
-	final int[] [] XY = new int [CELLS] [2];
+	int[] [] XY ;
 	char direction = 'R';
-	final int DELAY = 100;
+	final int DELAY = 250;
 	
 	Timer timer;
 	int snakeLenght;
@@ -28,6 +28,7 @@ public class GamePanel extends JPanel implements ActionListener{
 	int appleEaten;
 	int appleX;
 	int appleY;
+	boolean GameOver;
 	
 	
 	public GamePanel(){
@@ -38,8 +39,8 @@ public class GamePanel extends JPanel implements ActionListener{
 
 		this.setFocusable(true);
 
-//		this.addKeyListener(new KeyListener());
-//
+		this.addKeyListener(new MyKeyAdapter());
+
 		startGame();
 	}
 	
@@ -47,6 +48,9 @@ public class GamePanel extends JPanel implements ActionListener{
 		snakeLenght = 3;
 		score = 0;
 		appleEaten = 0;
+		GameOver=false;
+		XY = new int [CELLS] [2];
+		direction = 'R';
 		timer = new Timer(DELAY,this);
 		timer.start();
 
@@ -63,7 +67,7 @@ public class GamePanel extends JPanel implements ActionListener{
 	
 	
 	public void move(){
-System.out.println("gdf");
+
 		for(int i = snakeLenght; i>0; i--) {
 			XY[i][0] = XY[i-1][0];
 			XY[i][1] = XY[i-1][1];
@@ -99,23 +103,48 @@ System.out.println("gdf");
 
 		}
 
-		
+	}
+	
+	public void collide(){
+		//body check
+		for(int i = snakeLenght; i>0;i--) 
+			if((XY[0][0] == XY[i][0])&& (XY[0][1] == XY[i][1])) 
+				GameOver = true;
+
+		//walls check
+		if(XY[0][0] < 0 || XY[0][0] > SCREEN_WIDTH || XY[0][1] < 0 || XY[0][1] > SCREEN_HEIGHT) 
+			GameOver = true;
+
+	}
+	
+	
+	
+	public void eatApple() {
+		if((XY[0][0] == appleX) && (XY[0][1] == appleY)) {
+
+			snakeLenght++;
+
+			appleEaten++;
+
+			createNewApple();
+
+		}
 
 	}
 
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		move();
+		if(!GameOver) {
+			
+			move();
+			collide();
+			eatApple();
+		}else {
+			timer.stop();
+		}
 		repaint();
 	}
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	
@@ -128,7 +157,6 @@ System.out.println("gdf");
 	}
 
 	public void draw(Graphics g) {
-	
 		
 		drawApple(g);
 
@@ -153,7 +181,6 @@ System.out.println("gdf");
 	
 	public void drawSnake(Graphics g) {
 		
-		Graphics2D g2 = (Graphics2D) g;
 
 		for(int i = 0; i< snakeLenght;i++) {
 
@@ -170,6 +197,53 @@ System.out.println("gdf");
 
 	}
 
+
+	public class MyKeyAdapter extends KeyAdapter{
+
+		@Override
+
+		public void keyPressed(KeyEvent e) {
+
+			switch(e.getKeyCode()) {
+
+			case KeyEvent.VK_LEFT:
+
+				if(direction != 'R') 
+					direction = 'L';
+				
+				break;
+
+			case KeyEvent.VK_RIGHT:
+
+				if(direction != 'L') 
+					direction = 'R';
+				
+				break;
+
+			case KeyEvent.VK_UP:
+
+				if(direction != 'D') 
+					direction = 'U';
+				
+				break;
+
+			case KeyEvent.VK_DOWN:
+
+				if(direction != 'U') 
+					direction = 'D';
+
+				break;
+
+			case KeyEvent.VK_ENTER:
+				if(GameOver)
+					startGame();
+
+				break;	
+			}
+
+		}
+
+	}
 
 
 }
