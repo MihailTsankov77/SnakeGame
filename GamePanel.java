@@ -2,12 +2,21 @@ package GameOfSnake;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
+import java.util.Vector;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -124,8 +133,13 @@ public class GamePanel extends JPanel implements ActionListener{
 
 			snakeLenght++;
 
+			if(appleEaten%5==0)
+				score+= 1000;	
+			else
+				score+=500;
+			
+			
 			appleEaten++;
-
 			createNewApple();
 
 		}
@@ -141,6 +155,12 @@ public class GamePanel extends JPanel implements ActionListener{
 			collide();
 			eatApple();
 		}else {
+			try {
+				checkHighScore();
+			} catch (File≈xception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			timer.stop();
 		}
 		repaint();
@@ -158,9 +178,27 @@ public class GamePanel extends JPanel implements ActionListener{
 
 	public void draw(Graphics g) {
 		
-		drawApple(g);
+		if(!GameOver) {
+			drawApple(g);
+	
+			drawSnake(g);
+			
+			g.setFont( new Font("Ink Free",Font.BOLD, 40));
+			FontMetrics metrics = getFontMetrics(g.getFont());
+			g.drawString("Score: "+ score, (SCREEN_WIDTH - metrics.stringWidth("Score: "+ score))/2, g.getFont().getSize());
+		}else {
+			
+			g.setColor(Color.red);
+			g.setFont( new Font("Ink Free",Font.BOLD, 75));
+			FontMetrics metrics = getFontMetrics(g.getFont());
+			g.drawString("Game Over", (SCREEN_WIDTH - metrics.stringWidth("Game Over"))/2, SCREEN_HEIGHT/2 - metrics.stringWidth("O")*2);
+			
+			g.drawString("Press S for High Score", (SCREEN_WIDTH - metrics.stringWidth("Press S for High Score"))/2, SCREEN_HEIGHT/2);
+			g.drawString("Press Enter to restart...", (SCREEN_WIDTH - metrics.stringWidth("Press Enter to restart..."))/2, SCREEN_HEIGHT/2+ metrics.stringWidth("O")*2);
+			
+			
+		}
 
-		drawSnake(g);
 	}
 	
 	public void drawApple(Graphics g) {
@@ -239,11 +277,105 @@ public class GamePanel extends JPanel implements ActionListener{
 					startGame();
 
 				break;	
+			
+			
+			case KeyEvent.VK_S:
+				if(GameOver)
+					showHighScore();
+	
+				break;	
+		
 			}
-
+			
 		}
 
 	}
+	
+	public void checkHighScore() throws File≈xception  {
+		
+		
+		
+		
+		int [] scores = new int[3];
+		
+		scores = readScore();
+		
+		
+		for(int i = 0; i<3; i++) {
+				if(score>=scores[i]) {
+					int pass = scores[i];
+					scores[i] = score;
+					score = pass;
+					
+				}
+			System.out.println(scores[i]);
+		}
+		try {
+			 FileWriter myWriter = new FileWriter("HighScore.txt");
+			 String text = "";
+			for(int i = 0; i<3;i++)
+				text+=scores[i]+"\n";
+				
+			
+			System.out.println(text);
+			myWriter.write(text);
+			 
+		      myWriter.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+			 
+			 
+		
+	}
+	
+	public int[] readScore() throws File≈xception {
+		int [] scores = new int[3];
+		
+		
+			File textfile = new File("HighScore.txt");
+			Scanner myReader;
+			try {
+				myReader = new Scanner(textfile);
+			} catch (FileNotFoundException e) {
+				throw new File≈xception(e);
+			}
+			
+			scores[0] =  Integer.parseInt(myReader.next());
+			scores[1] = Integer.parseInt(myReader.next());
+			scores[2] = Integer.parseInt(myReader.next());
+			
+			myReader.close();
+			
+		
+		return scores;
+	}
+	
+	
+	public void showHighScore() {
+		try {
+			File textfile = new File("HighScore.txt");
+			Scanner myReader = new Scanner(textfile);
+			Vector <Integer> scores = new Vector<Integer>();
+			while (myReader.hasNext()) {
+				scores.add( myReader.nextInt());
+			}
+			JOptionPane.showMessageDialog(null, "1. "+ scores.get(0) + 
+					"\n2. " + scores.get(1) + 
+					"\n3. " + scores.get(2) 								, "Top 3 High Score", JOptionPane.INFORMATION_MESSAGE); 
+			myReader.close();
+		} catch (FileNotFoundException e) {
+			System.out.println("An error occurred.");
+			e.printStackTrace();
+		}
+		
+		
+	}
+	
+	
 
 
 }
+ 
